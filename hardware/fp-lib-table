@@ -1,0 +1,4 @@
+(fp_lib_table
+  (lib (name "RPi Pico")(type "KiCad")(uri "${KIPRJMOD}/lib/rpi-pico/MCU_RaspberryPi_and_Boards.pretty")(options "")(descr ""))
+  (lib (name "SSD-1306")(type "KiCad")(uri "${KIPRJMOD}/lib/ssd1306/SSD1306.pretty")(options "")(descr ""))
+)
