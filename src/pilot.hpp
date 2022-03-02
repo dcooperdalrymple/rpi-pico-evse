@@ -11,6 +11,12 @@
 #define PILOT_STATE_VENT    3
 #define PILOT_STATES        4
 
+#define PILOT_STATE_CHANGE  0
+#define PILOT_RELAY_ON      1
+#define PILOT_RELAY_OFF     2
+
+typedef void(* pilot_callback_t) (uint8_t event);
+
 class Pilot {
 
 private:
@@ -25,12 +31,15 @@ private:
 
     absolute_time_t relay_timestamp, start_timestamp, end_timestamp;
 
+    pilot_callback_t cb = NULL;
+
     // Updates & Setters
 
     bool set_state(uint8_t state, bool force = false) {
         if (cur_state == state && force == false) return false;
         cur_state = state;
         if (state == PILOT_STATE_CHARGE) relay_timestamp = get_absolute_time();
+        if (cb) cb(PILOT_STATE_CHANGE);
         return true;
     };
     void update_state() {
@@ -77,8 +86,10 @@ private:
         if (value == 1) {
             start_timestamp = get_absolute_time();
             end_timestamp = nil_time;
+            if (cb) cb(PILOT_RELAY_ON);
         } else {
             end_timestamp = get_absolute_time();
+            if (cb) cb(PILOT_RELAY_OFF);
         }
         return true;
     };
@@ -214,6 +225,17 @@ public:
         } else {
             return 0.0;
         }
+    };
+
+    bool get_relay() {
+        return last_relay == 1;
+    };
+
+    void set_callback(pilot_callback_t callback) {
+        cb = callback;
+    };
+    void clear_callback(void) {
+        cb = NULL;
     };
 
 };

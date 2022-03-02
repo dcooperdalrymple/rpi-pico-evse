@@ -67,6 +67,9 @@ void rotary_callback(uint8_t event) {
     }
 }
 
+void pilot_callback(uint8_t event) {
+}
+
 void update_screen() {
     display.draw_status(pilot.get_state(), pilot.get_amp());
     display.draw_title(menu_titles[cur_screen]);
@@ -92,6 +95,8 @@ int main() {
     bi_decl(bi_2pins_with_func(SDA_PIN, SCL_PIN, GPIO_FUNC_I2C));
 
     rotary.set_callback(&rotary_callback);
+
+    pilot.set_callback(&pilot_callback);
 
     cur_screen = SCREEN_MENU;
     cur_menu = SCREEN_AMP;
