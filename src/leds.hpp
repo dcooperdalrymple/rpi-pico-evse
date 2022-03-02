@@ -12,12 +12,12 @@ class LEDs {
 private:
 
     static uint8_t cur_state;
+    static int timer;
 
     const static uint pins[LED_NUM];
     static uint slice[LED_NUM];
 
     static void pwm_update() {
-        static int timer = -1;
         timer++;
         switch (cur_state) {
             case PILOT_STATE_READY:
@@ -98,6 +98,7 @@ public:
                 break;
         }
         cur_state = state;
+        timer = -1;
     };
 
 };
