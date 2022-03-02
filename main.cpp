@@ -16,7 +16,7 @@
 static Display display;
 static Pilot pilot;
 
-static int screen;
+static int cur_screen;
 static int cur_menu;
 
 void rotary_callback(uint8_t event) {
@@ -46,12 +46,12 @@ void rotary_callback(uint8_t event) {
         //case ROTARY_PRESS:
         //    break;
         case ROTARY_RELEASE:
-            switch (screen) {
+            switch (cur_screen) {
                 case SCREEN_MENU:
-                    screen = cur_menu;
+                    cur_screen = cur_menu;
                     break;
                 default:
-                    screen = SCREEN_MENU;
+                    cur_screen = SCREEN_MENU;
                     break;
             }
             break;
@@ -59,10 +59,9 @@ void rotary_callback(uint8_t event) {
 }
 
 void update_screen() {
-    display.draw_status(0, 10.0);
     display.draw_status(pilot.get_state(), pilot.get_amp());
-    display.draw_title(menu_titles[screen]);
-    switch (screen) {
+    display.draw_title(menu_titles[cur_screen]);
+    switch (cur_screen) {
         case SCREEN_MENU:
             display.draw_menu(menu_titles[cur_menu]);
             break;
@@ -80,17 +79,14 @@ int main() {
     stdio_init_all();
 
     // picotool declarations
+    bi_decl(bi_program_description(name_message));
     bi_decl(bi_2pins_with_func(SDA_PIN, SCL_PIN, GPIO_FUNC_I2C));
-    bi_decl(bi_program_description("RPi Pico EVSE"));
 
     Rotary rotary(16, 18);
     rotary.set_callback(&rotary_callback);
 
-    screen = SCREEN_MENU;
+    cur_screen = SCREEN_MENU;
     cur_menu = SCREEN_AMP;
-
-    display.draw_name();
-    display.dump();
 
     while (1) {
         pilot.update();

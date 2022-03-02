@@ -43,28 +43,29 @@ public:
         char amp_msg[6];
         snprintf(amp_msg, sizeof(amp_msg), "%.1fA", amp);
 
-        oled.set_cursor(0, 0);
         oled.set_textWrap(false);
-        oled.draw_rectangle(0, 0, OLED_WIDTH-1, 8, 0, 1);
+        oled.draw_rectangle(0, 0*8, OLED_WIDTH-1, 1*8, 0, 1);
+        oled.set_cursor(0, 0);
         oled.write_string(0, -1, -1, state_msg, FONT_6x8, 0, 0);
-        oled.write_string(0, 128 - strlen(amp_msg) * 8, -1, amp_msg, FONT_8x8, 0, 0);
+        oled.set_cursor(128 - strlen(amp_msg) * 8, 0);
+        oled.write_string(0, -1, -1, amp_msg, FONT_8x8, 0, 0);
     };
 
     void draw_title(const char *c_msg) {
         if (rc == OLED_NOT_FOUND) return;
         char *msg = getConstMsg(c_msg);
-        oled.set_cursor(0, 1);
         oled.set_textWrap(false);
-        oled.draw_rectangle(0, 8, OLED_WIDTH-1, 24, 1, 1);
-        oled.write_string(0, -1, 8, msg, FONT_16x16, 1, 0);
+        oled.draw_rectangle(0, 1*8, OLED_WIDTH-1, 3*8, 1, 1);
+        oled.set_cursor(64 - strlen(msg) * 8 - 1, 1);
+        oled.write_string(0, -1, -1, msg, FONT_16x16, 1, 0);
     };
 
     void draw_value(char *msg) {
         if (rc == OLED_NOT_FOUND) return;
-        oled.set_cursor(0, 3);
         oled.set_textWrap(false);
-        oled.draw_rectangle(0, 24, OLED_WIDTH-1, 56, 0, 1);
-        oled.write_string(0, 64 - strlen(msg) * 8 - 1, 24, msg, FONT_16x32, 0, 0);
+        oled.draw_rectangle(0, 3*8, OLED_WIDTH-1, 7*8, 0, 1);
+        oled.set_cursor(64 - strlen(msg) * 8 - 1, 3);
+        oled.write_string(0, -1, -1, msg, FONT_16x32, 0, 0);
     };
     void draw_menu(const char *c_msg) {
         char *msg = getConstMsg(c_msg);
@@ -79,15 +80,6 @@ public:
         char msg[7];
         snprintf(msg, sizeof(msg), "%2dh%2dm", floorf(mins / 60.0), floorf(mins - floorf(mins / 60.0) * 60.0));
         draw_value(msg);
-    };
-
-    void draw_name() {
-        if (rc == OLED_NOT_FOUND) return;
-        oled.set_cursor(0, 7);
-        oled.set_textWrap(false);
-        oled.draw_rectangle(0, 56, OLED_WIDTH-1, 64, 1, 1);
-        char *msg = getConstMsg(name_message);
-        oled.write_string(0, 64 - strlen(msg) * 4 - 1, 56, msg, FONT_8x8, 0, 0);
     };
 
     void dump() {
