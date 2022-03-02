@@ -54,6 +54,8 @@ public:
         oled.write_string(0, -1, -1, state_msg, FONT_6x8, 0, 0);
         oled.set_cursor(amp_x, 0);
         oled.write_string(0, -1, -1, amp_msg, FONT_8x8, 0, 0);
+
+        if (relay) oled.draw_sprite(spr_pwr, SPR_PWR_W, SPR_PWR_H, 1, amp_x - SPR_PWR_W, 0, 1);
     };
 
     void draw_title(const char *c_msg) {

@@ -25,4 +25,17 @@ const char* const menu_titles[MENU_MAX+1] = {
     "Time"
 };
 
+#define SPR_PWR_W   8
+#define SPR_PWR_H   8
+static uint8_t spr_pwr[] = {
+    0b01111100,
+    0b01111000,
+    0b11110000,
+    0b11111100,
+    0b00111000,
+    0b00110000,
+    0b01100000,
+    0b11000000
+};
+
 #endif

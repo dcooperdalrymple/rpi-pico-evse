@@ -82,7 +82,7 @@ void pilot_callback(uint8_t event) {
 }
 
 void update_screen() {
-    display.draw_status(pilot.get_state(), pilot.get_amp());
+    display.draw_status(pilot.get_state(), pilot.get_amp(), pilot.get_relay());
     display.draw_title(menu_titles[cur_screen]);
     switch (cur_screen) {
         case SCREEN_MENU:
