@@ -3,7 +3,7 @@
 
 #define EV_AMP_MAX  30
 #define EV_AMP_MIN  6
-#define EV_AMP_STEP 1
+#define EV_AMP_STEP 0.5
 
 #define PILOT_PWM_MAX   32767
 #define PILOT_PWM_MIN   6553
