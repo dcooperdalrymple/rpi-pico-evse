@@ -17,6 +17,7 @@
 #define LED_1       13
 #define LED_2       14
 #define LED_3       15
+#define LED_NUM     3
 
 #define ROTARY_CLK      16
 #define ROTARY_DT       17

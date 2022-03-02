@@ -11,10 +11,12 @@
 #include "src/display.hpp"
 #include "src/rotary.hpp"
 #include "src/pilot.hpp"
+#include "src/leds.hpp"
 #include "src/menu_config.h"
 
 static Display display;
 static Pilot pilot;
+static LEDs leds;
 static Rotary rotary(ROTARY_CLK, ROTARY_SW);
 
 static int cur_screen;
@@ -97,6 +99,7 @@ int main() {
     while (1) {
         pilot.update();
         update_screen();
+        leds.update(pilot.get_state());
     }
 
     return 0;

@@ -20,6 +20,7 @@ project(${NAME} C CXX ASM)
 add_executable(${NAME}
     src/display.cpp
     src/rotary.cpp
+    src/leds.cpp
     src/pilot.cpp
     main.cpp
 )
