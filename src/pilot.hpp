@@ -24,12 +24,12 @@ private:
     uint pwm_slice;
     uint pwm_channel;
 
-    float cur_amp;
+    float cur_amp, last_watts;
     uint16_t last_pwm, cur_pwm;
     uint8_t last_relay;
     uint8_t cur_state;
 
-    absolute_time_t relay_timestamp, start_timestamp, end_timestamp;
+    absolute_time_t relay_timestamp, start_timestamp, end_timestamp, watts_timestamp;
 
     pilot_callback_t cb = NULL;
 
@@ -86,6 +86,7 @@ private:
         if (value == 1) {
             start_timestamp = get_absolute_time();
             end_timestamp = nil_time;
+            reset_watts();
             if (cb) cb(PILOT_RELAY_ON);
         } else {
             end_timestamp = get_absolute_time();
@@ -148,11 +149,33 @@ private:
     };
 
     float set_amp(float amp) {
+        if (cur_state == PILOT_STATE_CHARGE) update_watts();
         if (amp < EV_AMP_MIN) amp = EV_AMP_MIN;
         if (amp > EV_AMP_MAX) amp = EV_AMP_MAX;
         cur_amp = amp;
         cur_pwm = calculate_pwm(amp);
         return amp;
+    };
+
+    void update_watts() {
+        absolute_time_t now = get_absolute_time();
+        if (is_nil_time(watts_timestamp) && !is_nil_time(start_timestamp)) watts_timestamp = start_timestamp;
+        if (!is_nil_time(end_timestamp)) {
+            if (!is_nil_time(watts_timestamp) && absolute_time_diff_us(watts_timestamp, end_timestamp) > 0) {
+                now = end_timestamp;
+            } else {
+                return;
+            }
+        }
+        if (!is_nil_time(watts_timestamp)) {
+            uint micros = absolute_time_diff_us(watts_timestamp, now);
+            last_watts += cur_amp * EV_VOLTS * ((float)micros / 3600000000.0);
+        }
+        watts_timestamp = now;
+    };
+    void reset_watts() {
+        last_watts = 0;
+        watts_timestamp = nil_time;
     };
 
 public:
@@ -229,6 +252,11 @@ public:
 
     bool get_relay() {
         return last_relay == 1;
+    };
+
+    float get_watts() {
+        update_watts();
+        return last_watts;
     };
 
     void set_callback(pilot_callback_t callback) {

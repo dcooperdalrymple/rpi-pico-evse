@@ -94,6 +94,9 @@ void update_screen() {
         case SCREEN_TIME:
             display.draw_time(pilot.get_time());
             break;
+        case SCREEN_WATT:
+            display.draw_watts(pilot.get_watts());
+            break;
     }
     display.dump();
 }

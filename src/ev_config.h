@@ -1,6 +1,8 @@
 #ifndef EV_CONFIG_H_
 #define EV_CONFIG_H_
 
+#define EV_VOLTS    240
+
 #define EV_AMP_MAX  30
 #define EV_AMP_MIN  6
 #define EV_AMP_STEP 0.5

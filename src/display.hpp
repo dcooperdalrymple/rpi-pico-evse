@@ -98,6 +98,15 @@ public:
         }
         draw_value(msg);
     };
+    void draw_watts(float watts) {
+        char msg[8];
+        if (watts < 1000) {
+            snprintf(msg, sizeof(msg), "%.1fW", watts);
+        } else {
+            snprintf(msg, sizeof(msg), "%.1fkW", watts / 1000.0);
+        }
+        draw_value(msg);
+    };
 
     void dump() {
         if (rc == OLED_NOT_FOUND) return;
