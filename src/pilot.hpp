@@ -206,11 +206,11 @@ public:
         return cur_amp;
     };
 
-    float get_time() { // Returns minutes
+    uint get_time() { // Returns seconds
         if (!is_nil_time(start_timestamp) && is_nil_time(end_timestamp)) {
-            return absolute_time_diff_us(start_timestamp, get_absolute_time()) / (1000000 * 60);
+            return absolute_time_diff_us(start_timestamp, get_absolute_time()) / 1000000;
         } else if (!is_nil_time(start_timestamp) && !is_nil_time(end_timestamp)) {
-            return absolute_time_diff_us(start_timestamp, end_timestamp) / (1000000 * 60);
+            return absolute_time_diff_us(start_timestamp, end_timestamp) / 1000000;
         } else {
             return 0.0;
         }

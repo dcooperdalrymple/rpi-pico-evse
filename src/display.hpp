@@ -76,9 +76,15 @@ public:
         snprintf(msg, sizeof(msg), "%.1fA", amp);
         draw_value(msg);
     };
-    void draw_time(float mins) {
+    void draw_time(uint seconds) {
         char msg[7];
-        snprintf(msg, sizeof(msg), "%2dh%2dm", floorf(mins / 60.0), floorf(mins - floorf(mins / 60.0) * 60.0));
+        if (seconds < 3600) {
+            snprintf(msg, sizeof(msg), "%2dm%2ds", (seconds / 60) % 60, seconds % 60);
+        } else if (seconds < 86400) {
+            snprintf(msg, sizeof(msg), "%2dh%2dm", seconds / 3600, (seconds / 60) % 60);
+        } else {
+            snprintf(msg, sizeof(msg), "%2dd%2dh", seconds / 86400, (seconds / 3600) % 24);
+        }
         draw_value(msg);
     };
 
