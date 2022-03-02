@@ -17,7 +17,7 @@ const char* const state_messages[PILOT_STATES] = {
 const char* const name_message = "RPi Pico EVSE v1.0";
 
 const char* const menu_titles[MENU_MAX+1] = {
-    "Menu",
+    "PicoEVSE",
     "Amps",
     "Time"
 };
