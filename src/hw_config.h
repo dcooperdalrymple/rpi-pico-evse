@@ -23,5 +23,6 @@
 #define ROTARY_DT       17
 #define ROTARY_SW       18
 #define ROTARY_BOUNCE   4
+#define ROTARY_RESET    500 // milliseconds
 
 #endif

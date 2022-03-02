@@ -19,6 +19,9 @@ private:
     picoSSOLED oled;
     uint8_t ucBuffer[1024];
 
+    bool awake = false;
+    bool powered = true;
+
     char *getConstMsg(const char *msg) {
         char *buf = new char[strlen(msg)+1];
         strcpy(buf, msg);
@@ -33,7 +36,7 @@ public:
         if (rc == OLED_NOT_FOUND) return;
 
         oled.fill(0x00, 1);
-        oled.set_contrast(127);
+        wake();
     };
 
     void draw_status(uint8_t state, float amp) {
@@ -103,6 +106,39 @@ public:
         if (rc == OLED_NOT_FOUND) return;
         oled.set_back_buffer(ucBuffer);
         oled.fill(0, 1);
+    };
+
+    void sleep(void) {
+        if (rc == OLED_NOT_FOUND) return;
+        oled.set_contrast(0);
+        awake = false;
+    };
+    void wake(void) {
+        if (rc == OLED_NOT_FOUND) return;
+        if (!powered) power_on();
+        oled.set_contrast(127);
+        awake = true;
+    };
+    bool is_awake(void) {
+        return awake;
+    };
+
+    void power_off(void) {
+        if (rc == OLED_NOT_FOUND) return;
+        if (powered == false) return;
+        oled.power(false);
+        powered = false;
+    };
+    void power_on(void) {
+        if (rc == OLED_NOT_FOUND) return;
+        if (powered == true) return;
+        oled.power(true);
+        powered = true;
+        oled.fill(0x00, 1);
+        dump();
+    };
+    bool is_powered(void) {
+        return powered;
     };
 
 };

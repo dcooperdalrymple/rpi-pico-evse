@@ -8,6 +8,9 @@
 #define MENU_MIN    1
 #define MENU_MAX    2
 
+#define SCREEN_TIMEOUT  10000 // milliseconds
+#define SCREEN_SHUTDOWN 30000 // milliseconds
+
 const char* const state_messages[PILOT_STATES] = {
     "Waiting",
     "Connected",
