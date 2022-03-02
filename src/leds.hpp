@@ -94,7 +94,7 @@ public:
         switch (state) {
             case PILOT_STATE_WAIT:
             default:
-                set_levels(127, 0, 0);
+                set_levels(64, 0, 0);
                 break;
         }
         cur_state = state;
