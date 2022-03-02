@@ -1,5 +1,6 @@
 #pragma once
 #include "pico/stdlib.h"
+#include "pico/double.h"
 #include "hardware/gpio.h"
 #include "hardware/pwm.h"
 #include "hw_config.h"
@@ -24,7 +25,7 @@ private:
     uint pwm_slice;
     uint pwm_channel;
 
-    float cur_amp, last_watts;
+    double cur_amp, last_watts;
     uint16_t last_pwm, cur_pwm;
     uint8_t last_relay;
     uint8_t cur_state;
@@ -129,10 +130,10 @@ private:
 
     // Amperage Calculations and Setter
 
-    float calculate_amp(uint16_t pwm_level) {
+    double calculate_amp(uint16_t pwm_level) {
         // 0.6A per 10us up to 850us, min 100us
         // >850us, (in us - 640us) * 2.5
-        float micros = (float)pwm_level / PILOT_PWM_WAIT * 1000.0;
+        double micros = (double)pwm_level / PILOT_PWM_WAIT * 1000.0;
         if (micros > 850.0) {
             return (micros - 640.0) / 10.0 * 2.5;
         } else {
@@ -140,7 +141,7 @@ private:
         }
     };
 
-    uint16_t calculate_pwm(float amp) {
+    uint16_t calculate_pwm(double amp) {
         if (amp > 52.5) {
             return (uint16_t)((amp / 2.5 * 10.0 + 640.0) / 1000.0 * PILOT_PWM_WAIT);
         } else {
@@ -148,7 +149,7 @@ private:
         }
     };
 
-    float set_amp(float amp) {
+    double set_amp(double amp) {
         if (cur_state == PILOT_STATE_CHARGE) update_watts();
         if (amp < EV_AMP_MIN) amp = EV_AMP_MIN;
         if (amp > EV_AMP_MAX) amp = EV_AMP_MAX;
@@ -169,7 +170,7 @@ private:
         }
         if (!is_nil_time(watts_timestamp)) {
             uint micros = absolute_time_diff_us(watts_timestamp, now);
-            last_watts += cur_amp * EV_VOLTS * ((float)micros / 3600000000.0);
+            last_watts += cur_amp * EV_VOLTS * ((double)micros / 3600000000.0);
         }
         watts_timestamp = now;
     };
@@ -230,13 +231,13 @@ public:
         return cur_state;
     };
 
-    float increase_amp() {
+    double increase_amp() {
         return set_amp(cur_amp + EV_AMP_STEP);
     };
-    float decrease_amp() {
+    double decrease_amp() {
         return set_amp(cur_amp - EV_AMP_STEP);
     };
-    float get_amp() {
+    double get_amp() {
         return cur_amp;
     };
 
@@ -254,7 +255,7 @@ public:
         return last_relay == 1;
     };
 
-    float get_watts() {
+    double get_watts() {
         update_watts();
         return last_watts;
     };

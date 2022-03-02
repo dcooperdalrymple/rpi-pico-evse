@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "pico/stdlib.h"
-#include "pico/float.h"
+#include "pico/double.h"
 #include "ss_oled.hpp"
 #include "hw_config.h"
 #include "pilot.hpp"
@@ -39,12 +39,12 @@ public:
         wake();
     };
 
-    void draw_status(uint8_t state, float amp) {
+    void draw_status(uint8_t state, double amp, bool relay) {
         if (rc == OLED_NOT_FOUND) return;
 
         char *state_msg = getConstMsg(state_messages[state]);
         char amp_msg[6];
-        snprintf(amp_msg, sizeof(amp_msg), "%.1fA", amp);
+        snprintf(amp_msg, sizeof(amp_msg), "%.1lfA", amp);
         int amp_x = 128 - strlen(amp_msg) * 8;
         if (amp_x < 0) amp_x = 0;
 
@@ -82,9 +82,9 @@ public:
         char *msg = getConstMsg(c_msg);
         draw_value(msg);
     };
-    void draw_amp(float amp) {
+    void draw_amp(double amp) {
         char msg[6];
-        snprintf(msg, sizeof(msg), "%.1fA", amp);
+        snprintf(msg, sizeof(msg), "%.1lfA", amp);
         draw_value(msg);
     };
     void draw_time(uint seconds) {
@@ -98,12 +98,12 @@ public:
         }
         draw_value(msg);
     };
-    void draw_watts(float watts) {
-        char msg[8];
+    void draw_watts(double watts) {
+        char msg[9];
         if (watts < 1000) {
-            snprintf(msg, sizeof(msg), "%.1fW", watts);
+            snprintf(msg, sizeof(msg), "%.1lfW", watts);
         } else {
-            snprintf(msg, sizeof(msg), "%.1fkW", watts / 1000.0);
+            snprintf(msg, sizeof(msg), "%.2lfkW", watts / 1000.0);
         }
         draw_value(msg);
     };
