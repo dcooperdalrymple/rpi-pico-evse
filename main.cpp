@@ -15,6 +15,7 @@
 
 static Display display;
 static Pilot pilot;
+static Rotary rotary(ROTARY_CLK, ROTARY_SW);
 
 static int cur_screen;
 static int cur_menu;
@@ -22,25 +23,31 @@ static int cur_menu;
 void rotary_callback(uint8_t event) {
     switch (event) {
         case ROTARY_CW:
-            switch (screen) {
-                case SCREEN_MENU:
-                    if (cur_menu >= MENU_MAX) cur_menu = MENU_MIN;
-                    else cur_menu += 1;
-                    break;
-                case SCREEN_AMP:
-                    pilot.increase_amp();
-                    break;
+            if (rotary.get_rotation() >= ROTARY_BOUNCE) {
+                rotary.set_rotation(0);
+                switch (cur_screen) {
+                    case SCREEN_MENU:
+                        if (cur_menu >= MENU_MAX) cur_menu = MENU_MIN;
+                        else cur_menu += 1;
+                        break;
+                    case SCREEN_AMP:
+                        pilot.increase_amp();
+                        break;
+                }
             }
             break;
         case ROTARY_CCW:
-            switch (screen) {
-                case SCREEN_MENU:
-                    if (cur_menu <= MENU_MIN) cur_menu = MENU_MAX;
-                    else cur_menu -= 1;
-                    break;
-                case SCREEN_AMP:
-                    pilot.decrease_amp();
-                    break;
+            if (rotary.get_rotation() <= -ROTARY_BOUNCE) {
+                rotary.set_rotation(0);
+                switch (cur_screen) {
+                    case SCREEN_MENU:
+                        if (cur_menu <= MENU_MIN) cur_menu = MENU_MAX;
+                        else cur_menu -= 1;
+                        break;
+                    case SCREEN_AMP:
+                        pilot.decrease_amp();
+                        break;
+                }
             }
             break;
         //case ROTARY_PRESS:
@@ -82,7 +89,6 @@ int main() {
     bi_decl(bi_program_description(name_message));
     bi_decl(bi_2pins_with_func(SDA_PIN, SCL_PIN, GPIO_FUNC_I2C));
 
-    Rotary rotary(16, 18);
     rotary.set_callback(&rotary_callback);
 
     cur_screen = SCREEN_MENU;

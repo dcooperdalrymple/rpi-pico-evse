@@ -18,4 +18,9 @@
 #define LED_2       14
 #define LED_3       15
 
+#define ROTARY_CLK      16
+#define ROTARY_DT       17
+#define ROTARY_SW       18
+#define ROTARY_BOUNCE   4
+
 #endif

@@ -8,6 +8,7 @@ elf2uf2
 build
 *.pio.h
 pioasm
+hardware/rpi-pico-evse-backups
 
 # CMake
 CMakeLists.txt.user
