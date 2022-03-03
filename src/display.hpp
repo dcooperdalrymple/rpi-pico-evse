@@ -8,8 +8,10 @@
 #include "pilot.hpp"
 #include "menu_config.h"
 
-#define OLED_WIDTH 128
+#define OLED_WIDTH  128
 #define OLED_HEIGHT 64
+
+#define STRLEN      32
 
 class Display {
 
@@ -18,14 +20,24 @@ private:
     int rc;
     picoSSOLED oled;
     uint8_t ucBuffer[1024];
+    char textBuffer[STRLEN];
 
     bool awake = false;
     bool powered = true;
 
-    char *getConstMsg(const char *msg) {
-        char *buf = new char[strlen(msg)+1];
-        strcpy(buf, msg);
-        return buf;
+    void copyConstStr(const char *msg) {
+        if (strlen(msg) >= STRLEN) return;
+        strcpy(textBuffer, msg);
+    };
+
+    void draw_value() {
+        if (rc == OLED_NOT_FOUND) return;
+        int x = 64 - strlen(textBuffer) * 8 - 1;
+        if (x < 0) x = 0;
+        oled.set_textWrap(false);
+        oled.draw_rectangle(0, 3*8, OLED_WIDTH-1, 7*8, 0, 1);
+        oled.set_cursor(x, 3);
+        oled.write_string(0, -1, -1, textBuffer, FONT_16x32, 0, 0);
     };
 
 public:
@@ -42,70 +54,58 @@ public:
     void draw_status(uint8_t state, double amp, bool relay) {
         if (rc == OLED_NOT_FOUND) return;
 
-        char *state_msg = getConstMsg(state_messages[state]);
-        char amp_msg[6];
-        snprintf(amp_msg, sizeof(amp_msg), "%.1lfA", amp);
-        int amp_x = 128 - strlen(amp_msg) * 8;
-        if (amp_x < 0) amp_x = 0;
-
         oled.set_textWrap(false);
         oled.draw_rectangle(0, 0*8, OLED_WIDTH-1, 1*8, 0, 1);
         oled.set_cursor(0, 0);
-        oled.write_string(0, -1, -1, state_msg, FONT_6x8, 0, 0);
+
+        copyConstStr(state_messages[state]);
+        oled.write_string(0, -1, -1, textBuffer, FONT_6x8, 0, 0);
+
+        snprintf(textBuffer, STRLEN, "%.1lfA", amp);
+        int amp_x = 128 - strlen(textBuffer) * 8;
+        if (amp_x < 0) amp_x = 0;
         oled.set_cursor(amp_x, 0);
-        oled.write_string(0, -1, -1, amp_msg, FONT_8x8, 0, 0);
+        oled.write_string(0, -1, -1, textBuffer, FONT_8x8, 0, 0);
 
         if (relay) oled.draw_sprite(spr_pwr, SPR_PWR_W, SPR_PWR_H, 1, amp_x - SPR_PWR_W, 0, 1);
     };
 
     void draw_title(const char *c_msg) {
         if (rc == OLED_NOT_FOUND) return;
-        char *msg = getConstMsg(c_msg);
-        int x = 64 - strlen(msg) * 8 - 1;
+        copyConstStr(c_msg);
+        int x = 64 - strlen(textBuffer) * 8 - 1;
         if (x < 0) x = 0;
         oled.set_textWrap(false);
         oled.draw_rectangle(0, 1*8, OLED_WIDTH-1, 3*8, 1, 1);
         oled.set_cursor(x, 1);
-        oled.write_string(0, -1, -1, msg, FONT_16x16, 1, 0);
+        oled.write_string(0, -1, -1, textBuffer, FONT_16x16, 1, 0);
     };
 
-    void draw_value(char *msg) {
-        if (rc == OLED_NOT_FOUND) return;
-        int x = 64 - strlen(msg) * 8 - 1;
-        if (x < 0) x = 0;
-        oled.set_textWrap(false);
-        oled.draw_rectangle(0, 3*8, OLED_WIDTH-1, 7*8, 0, 1);
-        oled.set_cursor(x, 3);
-        oled.write_string(0, -1, -1, msg, FONT_16x32, 0, 0);
-    };
     void draw_menu(const char *c_msg) {
-        char *msg = getConstMsg(c_msg);
-        draw_value(msg);
+        copyConstStr(c_msg);
+        draw_value();
     };
     void draw_amp(double amp) {
-        char msg[6];
-        snprintf(msg, sizeof(msg), "%.1lfA", amp);
-        draw_value(msg);
+        snprintf(textBuffer, STRLEN, "%.1lfA", amp);
+        draw_value();
     };
     void draw_time(uint seconds) {
-        char msg[7];
         if (seconds < 3600) {
-            snprintf(msg, sizeof(msg), "%2dm%2ds", (seconds / 60) % 60, seconds % 60);
+            snprintf(textBuffer, STRLEN, "%2dm%2ds", (seconds / 60) % 60, seconds % 60);
         } else if (seconds < 86400) {
-            snprintf(msg, sizeof(msg), "%2dh%2dm", seconds / 3600, (seconds / 60) % 60);
+            snprintf(textBuffer, STRLEN, "%2dh%2dm", seconds / 3600, (seconds / 60) % 60);
         } else {
-            snprintf(msg, sizeof(msg), "%2dd%2dh", seconds / 86400, (seconds / 3600) % 24);
+            snprintf(textBuffer, STRLEN, "%2dd%2dh", seconds / 86400, (seconds / 3600) % 24);
         }
-        draw_value(msg);
+        draw_value();
     };
     void draw_watts(double watts) {
-        char msg[9];
         if (watts < 1000) {
-            snprintf(msg, sizeof(msg), "%.1lfW", watts);
+            snprintf(textBuffer, STRLEN, "%.1lfW", watts);
         } else {
-            snprintf(msg, sizeof(msg), "%.2lfkW", watts / 1000.0);
+            snprintf(textBuffer, STRLEN, "%.2lfkW", watts / 1000.0);
         }
-        draw_value(msg);
+        draw_value();
     };
 
     void dump() {
