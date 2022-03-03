@@ -11,6 +11,7 @@
 
 #define SCREEN_TIMEOUT  10000 // milliseconds
 #define SCREEN_SHUTDOWN 30000 // milliseconds
+#define SCREEN_UPDATE   100   // milliseconds (time/watts update frequency)
 
 const char* const state_messages[PILOT_STATES] = {
     "Waiting",

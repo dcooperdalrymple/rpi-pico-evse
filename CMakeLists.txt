@@ -22,6 +22,7 @@ add_executable(${NAME}
     src/rotary.cpp
     src/leds.cpp
     src/pilot.cpp
+    src/coretalk.cpp
     main.cpp
 )
 add_subdirectory(./lib/pico-ss-oled)
@@ -29,6 +30,6 @@ add_subdirectory(./lib/pico-ss-oled)
 pico_generate_pio_header(${NAME} ${CMAKE_CURRENT_LIST_DIR}/src/rotary.pio)
 
 pico_add_extra_outputs(${NAME})
-target_link_libraries(${NAME} pico_stdlib hardware_gpio hardware_pio hardware_pwm pico_ss_oled pico_double)
+target_link_libraries(${NAME} pico_stdlib hardware_gpio hardware_pio hardware_pwm hardware_irq pico_ss_oled pico_double pico_multicore)
 
 pico_set_program_url(${NAME} ${URL})

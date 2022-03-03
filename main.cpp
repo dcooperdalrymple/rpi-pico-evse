@@ -12,27 +12,28 @@
 #include "src/rotary.hpp"
 #include "src/pilot.hpp"
 #include "src/leds.hpp"
+#include "src/coretalk.hpp"
 #include "src/menu_config.h"
 
-static Display display;
+static CoreTalk coretalk;
 static Pilot pilot;
+
+// Secondary Core (display/rotary/leds)
+
+static Display display;
 static LEDs leds;
 static Rotary rotary(ROTARY_CLK, ROTARY_SW);
+static int cur_screen, cur_menu;
+static absolute_time_t rotary_timestamp, screen_timestamp;
 
-static int cur_screen;
-static int cur_menu;
-
-static absolute_time_t rotary_timestamp = nil_time, screen_timestamp = nil_time;
-
-void screen_activity(void) {
+void interface_activity(void) {
     screen_timestamp = get_absolute_time();
     if (!display.is_powered()) display.power_on();
     if (!display.is_awake()) display.wake();
 }
-
-void rotary_callback(uint8_t event) {
+void interface_rotary_handler(uint8_t event) {
     rotary_timestamp = get_absolute_time();
-    screen_activity();
+    interface_activity();
     switch (event) {
         case ROTARY_CW:
             if (rotary.get_rotation() >= ROTARY_BOUNCE) {
@@ -76,12 +77,9 @@ void rotary_callback(uint8_t event) {
             break;
     }
 }
+void interface_display() {
+    interface_activity();
 
-void pilot_callback(uint8_t event) {
-    screen_activity();
-}
-
-void update_screen() {
     display.draw_status(pilot.get_state(), pilot.get_amp(), pilot.get_relay());
     display.draw_title(menu_titles[cur_screen]);
     switch (cur_screen) {
@@ -95,10 +93,83 @@ void update_screen() {
             display.draw_time(pilot.get_time());
             break;
         case SCREEN_WATT:
-            display.draw_watts(pilot.get_watts());
+            display.draw_watts(pilot.get_watts(false));
             break;
     }
     display.dump();
+}
+void interface_update() {
+    // LED State
+    leds.update(pilot.get_state());
+
+    // Screen Update
+    interface_display();
+}
+void interface_core_handler(uint32_t event, uint32_t value) {
+    switch (event) {
+        case CORE_POKE:
+            interface_update();
+            break;
+        case CORE_DATA:
+            break;
+    }
+}
+void interface_core() {
+    cur_screen = SCREEN_MENU;
+    cur_menu = MENU_MIN;
+    rotary_timestamp = screen_timestamp = nil_time;
+
+    // Blocking handshake with core0
+    if (!coretalk.handshake()) return;
+
+    coretalk.setup();
+    coretalk.set_callback(&interface_core_handler);
+    rotary.set_callback(&interface_rotary_handler);
+
+    interface_display();
+
+    absolute_time_t now_timestamp;
+    screen_timestamp = get_absolute_time();
+
+    while (1) {
+        now_timestamp = get_absolute_time();
+        if (!is_nil_time(rotary_timestamp) && absolute_time_diff_us(rotary_timestamp, now_timestamp) / 1000 > ROTARY_RESET) {
+            rotary.set_rotation(0);
+            rotary_timestamp = nil_time;
+        }
+        if (!is_nil_time(screen_timestamp) && pilot.get_state() == PILOT_STATE_WAIT) {
+            if (display.is_awake() && absolute_time_diff_us(screen_timestamp, now_timestamp) / 1000 > SCREEN_TIMEOUT) {
+                display.sleep();
+            } else if (display.is_powered() && absolute_time_diff_us(screen_timestamp, now_timestamp) / 1000 > SCREEN_SHUTDOWN) {
+                display.power_off();
+                screen_timestamp = nil_time;
+            }
+        }
+        sleep_ms(SCREEN_UPDATE);
+    }
+}
+
+// Main Core (Pilot/EV Handling)
+
+void pilot_callback(uint8_t event) {
+    switch (event) {
+        case PILOT_STATE_CHANGE:
+            coretalk.poke();
+            break;
+        case PILOT_RELAY_ON:
+        case PILOT_RELAY_OFF:
+            coretalk.poke();
+            break;
+    }
+}
+
+void pilot_core_handler(uint32_t event, uint32_t value) {
+    switch (event) {
+        case CORE_POKE:
+            break;
+        case CORE_DATA:
+            break;
+    }
 }
 
 int main() {
@@ -108,33 +179,25 @@ int main() {
     bi_decl(bi_program_description(name_message));
     bi_decl(bi_2pins_with_func(SDA_PIN, SCL_PIN, GPIO_FUNC_I2C));
 
-    rotary.set_callback(&rotary_callback);
+    // Setup core1 and do blocking handshake
+    multicore_launch_core1(interface_core);
+    if (!coretalk.handshake()) return 1;
 
+    coretalk.setup();
+    coretalk.set_callback(&pilot_core_handler);
     pilot.set_callback(&pilot_callback);
 
-    cur_screen = SCREEN_MENU;
-    cur_menu = SCREEN_AMP;
-
-    absolute_time_t now;
-    screen_timestamp = get_absolute_time();
+    absolute_time_t now_timestamp, update_timestamp;
+    update_timestamp = get_absolute_time();
 
     while (1) {
         pilot.update();
-        update_screen();
-        leds.update(pilot.get_state());
 
-        now = get_absolute_time();
-        if (!is_nil_time(rotary_timestamp) && absolute_time_diff_us(rotary_timestamp, now) / 1000 > ROTARY_RESET) {
-            rotary.set_rotation(0);
-            rotary_timestamp = nil_time;
-        }
-        if (!is_nil_time(screen_timestamp) && pilot.get_state() == PILOT_STATE_WAIT) {
-            if (display.is_awake() && absolute_time_diff_us(screen_timestamp, now) / 1000 > SCREEN_TIMEOUT) {
-                display.sleep();
-            } else if (display.is_powered() && absolute_time_diff_us(screen_timestamp, now) / 1000 > SCREEN_SHUTDOWN) {
-                display.power_off();
-                screen_timestamp = nil_time;
-            }
+        now_timestamp = get_absolute_time();
+        if (pilot.get_state() != PILOT_STATE_WAIT && !is_nil_time(update_timestamp) && absolute_time_diff_us(update_timestamp, now_timestamp) / 1000 > SCREEN_UPDATE) {
+            pilot.get_watts(true);
+            coretalk.poke();
+            update_timestamp = now_timestamp;
         }
     }
 

@@ -255,8 +255,8 @@ public:
         return last_relay == 1;
     };
 
-    double get_watts() {
-        update_watts();
+    double get_watts(bool update = true) {
+        if (update) update_watts();
         return last_watts;
     };
 
